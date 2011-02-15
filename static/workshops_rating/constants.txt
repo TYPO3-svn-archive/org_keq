@@ -1,0 +1,13 @@
+# Constants
+plugin.org_keq {
+    rating {
+        image {
+            file {
+                empty = EXT:org_keq/res/icons/ratingstarEmpty.png
+                half  = EXT:org_keq/res/icons/ratingstarHalf.png
+                full  = EXT:org_keq/res/icons/ratingstarFull.png
+            }
+            typolink.parameter = 0
+        }
+    }
+}

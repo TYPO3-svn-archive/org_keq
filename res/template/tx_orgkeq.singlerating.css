@@ -1,0 +1,35 @@
+.tx_orgkeq_singleRating {
+	cursor: pointer;
+	position: relative;
+}
+.tx_orgkeq_singleRatingDetail {
+	background-color: #fff;
+	border: 1px solid #888;
+	display: block;
+	display: none;
+	padding: 10px;
+	position: absolute;
+	right: 0;
+	top: 25px;
+	width: 215px;
+}
+.tx_orgkeq_singleRating:hover .tx_orgkeq_singleRatingDetail {
+	display: block;
+}
+.tx_orgkeq_singleRatingDetail h3 {
+	font-size: 1.25em;
+}
+.tx_orgkeq_singleRatingDetail ul {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+.tx_orgkeq_singleRatingDetail li {
+	clear: left;
+	white-space: nowrap;
+}
+.tx_orgkeq_singleRatingDetail li strong {
+	display: block;
+	float: left;
+	width: 110px;
+}
