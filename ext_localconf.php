@@ -4,7 +4,9 @@ if (!defined ('TYPO3_MODE')) {
 }
 
 if (TYPO3_MODE != 'BE') {
-		//  Hooks tx_kequestionnaire_pi1
+		/**
+		 * Hooks tx_kequestionnaire_pi1
+		 */
 	$_hookConf =& $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['ke_questionnaire'];
 	$_hookFile = 'EXT:org_keq/lib/class.tx_orgkeq_hooks_kequestionnaire_pi1.php';
 	$_hookCall = $_hookFile . ':tx_orgkeq_hooks_kequestionnaire_pi1';
@@ -21,12 +23,15 @@ if (TYPO3_MODE != 'BE') {
 
 
 
-		//  Hooks tx_browser_pi1
+		/**
+		 * Hooks tx_browser_pi1
+		 */
 	$_hookConf =& $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['browser'];
 	$_hookFile = 'EXT:org_keq/lib/class.tx_orgkeq_hooks_browser_pi1.php';
 	$_hookCall = $_hookFile . ':tx_orgkeq_hooks_browser_pi1';
 
-	$_hookConf['rows_list_consolidated'][]  = $_hookCall . '->showListviewRating';    //  Hook for handle the consolidated rows
-	$_hookConf['row_single_consolidated'][] = $_hookCall . '->showSingleviewRating';  //  Hook for handle the consolidated row
+	$_hookConf['rows_filter_consolidated'][] = $_hookCall . '->showListfilterRating';  //  Hook for handle the consolidated rows
+	$_hookConf['rows_list_consolidated'][]   = $_hookCall . '->showListviewRating';    //  Hook for handle the consolidated rows
+	$_hookConf['row_single_consolidated'][]  = $_hookCall . '->showSingleviewRating';  //  Hook for handle the consolidated row
 }
 ?>

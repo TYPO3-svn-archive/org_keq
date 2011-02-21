@@ -43,6 +43,28 @@ class tx_orgkeq_hooks_browser_pi1 {
 
 	// -------------------------------------------------------------------------
 	/**
+	 * Method to handle the consolidated rows in list filter
+	 *
+	 * @param   array   $params:   parent plugin configuration
+	 * @param   object  $pObj:     parent plugin object
+	 * @return void
+	 * @access  public
+	 */
+	public function showListfilterRating(&$params, &$pObj) {
+		$this->conf =& $params['pObj']->pObj->conf['extensions.']['tx_orgkeq.'];
+			//  get uids of listed workshops
+		$_rowUids = array();
+		foreach ($pObj->pObj->rows as $rKey => $rVal) {
+			$_rowUids[] = $rVal['tx_org_workshop.uid'];
+		}
+
+		$where = 'IN (' . implode(',', $_rowUids) . ')';
+		$this->getRating($where, $pObj, 'list');
+	}
+
+
+	// -------------------------------------------------------------------------
+	/**
 	 * Method to handle the consolidated rows in list view
 	 *
 	 * @param   array   $params:   parent plugin configuration
@@ -79,6 +101,15 @@ class tx_orgkeq_hooks_browser_pi1 {
 	}
 
 
+	// -------------------------------------------------------------------------
+	/**
+	 * Method to calculate rating
+	 *
+	 * @param   string  $where:    prepared part of where clause
+	 * @param   object  $pObj:     parent plugin object
+	 * @param   string  $modus:    'list' || 'single'
+	 * @access  protected
+	 */
 	protected function getRating($where, &$pObj, $modus = 'list') {
 			//  get ke_questionnaire results for this uid(s)
 		$select_fields = 'xmldata, tx_orgkeq_tx_org_workshop';
@@ -103,15 +134,6 @@ class tx_orgkeq_hooks_browser_pi1 {
 			}
 
 			$pObj->pObj->rows[$_rKey]['tx_org_workshop.rating'] = $_rating['total'];
-/*
-			if ($modus = 'single') {
-				$i = 0;
-				foreach ($_rating['groups'] as $_gVal) {
-					$i++;
-					$pObj->pObj->rows[$_rKey]['tx_org_workshop.rating' . $i] = $_gVal;
-				}
-			}
-*/
 		}
 	}
 

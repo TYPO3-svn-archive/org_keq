@@ -1,7 +1,14 @@
+0.2.0
+  11-02-21
+  Development
+  - hook rows_filter_consolidated added
+  Ulfried Herrmann  <http://herrmann.at.die-netzmacher.de>
+
 0.1.1
   11-02-15
   Improvement
   - typoscript properties renamened
+  Ulfried Herrmann  <http://herrmann.at.die-netzmacher.de>
 
 0.1.0
   11-01-31
