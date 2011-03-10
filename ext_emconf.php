@@ -11,7 +11,7 @@
 ########################################################################
 
 $EM_CONF[$_EXTKEY] = array(
-	'title' => 'Org +Rating with Questionnaire',
+	'title' => 'Org +Rating (keq)',
 	'description' => 'This extension helps you to get feedback on your Org Workshops using Questionnaire (ke_questionnaire).',
 	'category' => 'plugin',
 	'author' => 'Ulfried Herrmann',
