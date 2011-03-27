@@ -3,7 +3,7 @@
 ########################################################################
 # Extension Manager/Repository config file for ext "org_keq".
 #
-# Auto generated 31-01-2011 16:20
+# Auto generated 10-03-2011 08:09
 #
 # Manual updates:
 # Only the data in the array - everything else is removed by next
@@ -29,7 +29,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'clearCacheOnLoad' => 0,
 	'lockType' => '',
 	'author_company' => 'Die Netzmacher',
-	'version' => '0.2.0',
+	'version' => '0.2.1',
 	'constraints' => array(
 		'depends' => array(
 			'org' => '',
@@ -41,6 +41,9 @@ $EM_CONF[$_EXTKEY] = array(
 		'suggests' => array(
 		),
 	),
-	'_md5_values_when_last_written' => 'a:10:{s:9:"ChangeLog";s:4:"f6c7";s:10:"README.txt";s:4:"ee2d";s:12:"ext_icon.gif";s:4:"1bdc";s:14:"ext_tables.php";s:4:"7a3d";s:14:"ext_tables.sql";s:4:"56fa";s:16:"locallang_db.xml";s:4:"3f03";s:19:"doc/wizard_form.dat";s:4:"cfb8";s:20:"doc/wizard_form.html";s:4:"75b5";s:23:"static/ts/constants.txt";s:4:"4f1b";s:19:"static/ts/setup.txt";s:4:"6e0f";}',
+	'_md5_values_when_last_written' => 'a:18:{s:9:"ChangeLog";s:4:"df01";s:10:"README.txt";s:4:"9fa9";s:21:"ext_conf_template.txt";s:4:"8c7a";s:12:"ext_icon.gif";s:4:"ec42";s:17:"ext_localconf.php";s:4:"0ad5";s:14:"ext_tables.php";s:4:"4da8";s:14:"ext_tables.sql";s:4:"3181";s:16:"locallang_db.xml";s:4:"8075";s:14:"doc/manual.sxw";s:4:"0e23";s:41:"lib/class.tx_orgkeq_hooks_browser_pi1.php";s:4:"2376";s:49:"lib/class.tx_orgkeq_hooks_kequestionnaire_pi1.php";s:4:"12ef";s:29:"res/icons/ratingstarEmpty.png";s:4:"67b9";s:28:"res/icons/ratingstarFull.png";s:4:"a402";s:28:"res/icons/ratingstarHalf.png";s:4:"79a6";s:31:"res/template/questionnaire.html";s:4:"278e";s:39:"res/template/tx_orgkeq.singlerating.css";s:4:"60a2";s:37:"static/workshops_rating/constants.txt";s:4:"9eed";s:33:"static/workshops_rating/setup.txt";s:4:"3e61";}',
+	'suggests' => array(
+	),
 );
+
 ?>
