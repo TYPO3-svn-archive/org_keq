@@ -1,13 +1,19 @@
 # Constants
 plugin.org_keq {
-    rating {
-        image {
-            file {
-                empty = EXT:org_keq/res/icons/ratingstarEmpty.png
-                half  = EXT:org_keq/res/icons/ratingstarHalf.png
-                full  = EXT:org_keq/res/icons/ratingstarFull.png
-            }
-            typolink.parameter = 0
-        }
-    }
+	rating {
+		image {
+			file {
+ 					# cat = plugin.tx_org_keq/file/10;	type=file[png, jpg, gif]; label = Rating stars: Image file displaying an empty star
+				empty = EXT:org_keq/res/icons/ratingstarEmpty.png
+ 					# cat = plugin.tx_org_keq/file/20;	type=file[png, jpg, gif]; label = Rating stars: Image file displaying an half star
+				half  = EXT:org_keq/res/icons/ratingstarHalf.png
+ 					# cat = plugin.tx_org_keq/file/20;	type=file[png, jpg, gif]; label = Rating stars: Image file displaying an full star
+				full  = EXT:org_keq/res/icons/ratingstarFull.png
+			}
+ 				# cat = plugin.tx_org_keq/links/10;	type=int+; label = Rating questionnaire: page uid where the questionnaire is located
+			typolink.parameter = 0
+		}
+ 			# cat = plugin.tx_org_keq/enable/10;	type=string; label = Clear cache cmd: comma separated list of page uids whose cache is to be cleared after rating
+		clear_cacheCmd = 0
+	}
 }

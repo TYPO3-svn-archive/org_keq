@@ -207,8 +207,7 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 	// -------------------------------------------------------------------------
 	/**
 	 * Method to do something after the questionnaire is finished (tx_kequestionnaire_pi1)
-	 * Example for inserting mm-relation after inserting main record
-	 * not used at present
+	 * write calculated rating average for given workshop to db
 	 *
 	 * @param   object   $pObj:   procObj
 	 * @param   integer  $result_id: last insert id / update id
@@ -217,19 +216,189 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 	 * @access public
 	 */
 	public function pi1_renderLastPage(&$pObj, $result_id, &$markerArray) {
-		$_workshop = $pObj->piVars['tx_org']['workshop'];
+		if (!empty ($pObj->piVars['tx_org']['workshop'])) {
+#echo '<pre><b><u>' . __LINE__ . ' $pObj->piVars[tx_org]:</u></b> ' . print_r($pObj->piVars['tx_org'], 1) . '</pre>';
+			$this->conf =& $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_browser_pi1.']['extensions.']['tx_orgkeq.'];
+			$this->getRating($pObj);
+		}
 
-		$table         = 'tx_kequestionnaire_results_tx_orgkeq_tx_org_workshop_mm';
-		$fields_values = array(
-			'uid_local'   => (int)$result_id,
-			'uid_foreign' => (int)$_workshop,
-			'tablenames'  => '',
-			'sorting'     => 1,
+			//  always return $markerArray even it's untouched!
+		return $markerArray;
+	}
+
+
+	// -------------------------------------------------------------------------
+	/**
+	 * Method to calculate rating average
+	 *
+	 * @param   string  $where:    prepared part of where clause
+	 * @param   object  $pObj:     parent plugin object
+	 * @param   string  $modus:    'list' || 'single'
+	 * @access  protected
+	 *
+	 * @see tx_orgkeq_hooks_browser_pi1::getRating()
+	 */
+	protected function getRating(&$pObj) {
+		$this->workshop = (int)$pObj->piVars['tx_org']['workshop'];
+			//  get ke_questionnaire results for this uid(s)
+		$select_fields = 'xmldata, tx_orgkeq_tx_org_workshop';
+		$from_table    = 'tx_kequestionnaire_results';
+		$where_clause  = 'tx_orgkeq_tx_org_workshop = ' . $this->workshop;
+		$where_clause .= $pObj->cObj->enableFields($from_table, $show_hidden = 0);
+		$groupBy       = '';
+		$orderBy       = '';
+		$limit         = '';
+
+$sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
+#echo '<pre><b><u>' . __LINE__ . ' $sql:</u></b> ' . print_r($sql, 1) . '</pre>';
+		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
+		$dataArr = array();
+		while ($ftc = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+			$dataArr[$ftc['tx_orgkeq_tx_org_workshop']][] = t3lib_div::xml2Array($ftc['xmldata']);
+		}
+
+		$_rating = $this->calculateRating($dataArr[$this->workshop]);
+	}
+
+
+	// -------------------------------------------------------------------------
+	/**
+	 * Method to calculate rating
+	 *
+	 * @param   array   $dataArr:  data correlating to database query
+	 * @access  protected
+	 *
+	 * @see tx_orgkeq_hooks_browser_pi1::calculateRating()
+	 */
+	protected function calculateRating(&$dataArr) {
+#echo '<pre><b><u>' . __LINE__ . ' $dataArr:</u></b> ' . print_r($dataArr, 1) . '</pre>';
+			//  rewrite array answers
+		$_answersFactor = array();
+		foreach ($this->conf['groups.'] as $_cVal) {
+			$_answersFactor = $_answersFactor + $_cVal['answers.'];  //  do not use array_merge(), it renumbers array keys!
+		}
+
+
+		/**
+		 * consolidate given ratings
+		 */
+		$_dataConsolidated = array();
+		foreach ($dataArr as $_dkey => $_dVal) {
+				// check if array value is an array itselfs (excludes strings like messages)
+			if (is_array($_dVal)) {
+				foreach ($_dVal as $_ddVal) {
+						//  check if array value includes an answer (excludes empty ratings)
+					if (isset($_ddVal['answer']) AND is_array($_ddVal['answer'])) {
+						$_dataConsolidated[] = $_ddVal['answer']['options'];
+					}
+				}
+			}
+		}
+
+			//  count given ratings
+		$_numRatings = count($_dataConsolidated);
+
+
+		/**
+		 * assign questions with accumulated values
+		 */
+		$_questions = array();
+		foreach ($_dataConsolidated as $_dVal) {
+			foreach ($_dVal as $_ddKey => $_ddVal) {
+				if (!isset ($_questions[$_ddKey])) {
+						//  initiate question as array key, value 0
+					$_questions[$_ddKey] = 0;
+				}
+					//  cumulate values
+				$_questions[$_ddKey] += $this->conf['scoring.'][$_ddVal['single']];
+			}
+		}
+
+		/**
+		 * get average and scoring, do rounding
+		 */
+		foreach ($_questions as $_qKey => $_qVal) {
+				//  average
+			$_questions[$_qKey] = $_qVal / $_numRatings;
+		}
+
+
+		/**
+		 * group answer values
+		 */
+		$_groups = array();
+		foreach ($this->conf['groups.'] as $_gVal) {
+				//  initiate group as array key, value 0
+			$_groups[$_gVal['title']] = 0;
+				//  initiate scoring factor sum
+			$_sumScoringFactor = 0;
+			foreach ($_gVal['answers.'] as $_gaKey => $_gaVal) {
+					//  initiate group as array key, value 0
+				if (!isset ($_groups[$_gVal['title']])) {
+						//  initiate group as array key, value 0
+					$_groups[$_gVal['title']] = 0;
+				}
+				$_questionValue = $_questions[$_gaKey];
+					//  scoring
+				$_questionValue = $_questionValue * $_answersFactor[$_gaKey];
+					//  cumulate scoring factor sum
+				$_sumScoringFactor += $_answersFactor[$_gaKey];
+
+					//  cumulate values
+				$_groups[$_gVal['title']] += $_questionValue;
+			}
+			//  value per scoring factor sum
+			$_groups[$_gVal['title']] = (int)$_groups[$_gVal['title']] / (int)$_sumScoringFactor;
+				//  rounding: possible values are \d.0 and \d.5
+			$_groups[$_gVal['title']] = $_groups[$_gVal['title']] * 10 * 2;    //  group of ten; double
+			$_groups[$_gVal['title']] = round($_groups[$_gVal['title']], -1);  //  round up to full group of ten
+			$_groups[$_gVal['title']] = $_groups[$_gVal['title']] / 10 / 2;    //
+		}
+
+
+		/**
+		 * total
+		 */
+			//  count groups
+		$_numGroups = count($_groups);
+		$_total     = 0;
+		foreach ($_groups as $_gKey => $_gVal) {
+		    $_total += $_gVal;
+		}
+		$_total = $_total / $_numGroups;
+			//  rounding: possible values are \d.0 and \d.5
+		$_total = $_total * 10 * 2;    //  group of ten; double
+		$_total = round($_total, -1);  //  round up to full group of ten
+		$_total = $_total / 10 / 2;    //
+
+
+		$rating = array(
+		    'total'  => $_total,
+		    'groups' => ($modus == 'list' ? NULL : $_groups),
+		);
+
+
+			//  update rating for this workshop
+		$table           = 'tx_org_workshop';
+		$where           = 'uid = ' . $this->workshop;
+		$fields_values   = array(
+			'rating' => (int)$rating['total'],
 		);
 		$no_quote_fields = FALSE;
-		$GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $fields_values, $no_quote_fields);
+$sql = $GLOBALS['TYPO3_DB']->UPDATEquery($table, $where, $fields_values, $no_quote_fields);
+#echo '<pre><b><u>' . __LINE__ . ' $sql:</u></b> ' . print_r($sql, 1) . '</pre>';
+		$GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, $where, $fields_values, $no_quote_fields);
 
-		return $markerArray;
+			// Clear cache
+		$clearCache   = t3lib_div::trimExplode(',', $this->conf['clear_cacheCmd'], TRUE);
+	##	$clearCache[] = $GLOBALS['TSFE']->id;
+		$tce = t3lib_div::makeInstance('t3lib_TCEmain');
+		/* @var $tce t3lib_TCEmain */
+		foreach (array_unique($clearCache) as $pid) {
+			$pid = (int)$pid;
+#echo '<pre><b><u>' . __LINE__ . ' $tce->clear_cacheCmd(' . $pid . '):</u></b></pre>';
+			$tce->clear_cacheCmd($pid);
+		}
 	}
 }
 

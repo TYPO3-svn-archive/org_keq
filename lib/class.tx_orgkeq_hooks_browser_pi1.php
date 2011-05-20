@@ -45,44 +45,48 @@ class tx_orgkeq_hooks_browser_pi1 {
 	/**
 	 * Method to handle the consolidated rows in list filter
 	 *
-	 * @param   array   $params:   parent plugin configuration
-	 * @param   object  $pObj:     parent plugin object
-	 * @return void
-	 * @access  public
-	 */
-	public function showListfilterRating(&$params, &$pObj) {
-		$this->conf =& $params['pObj']->pObj->conf['extensions.']['tx_orgkeq.'];
-			//  get uids of listed workshops
-		$_rowUids = array();
-		foreach ($pObj->pObj->rows as $rKey => $rVal) {
-			$_rowUids[] = $rVal['tx_org_workshop.uid'];
-		}
-
-		$where = 'IN (' . implode(',', $_rowUids) . ')';
-		$this->getRating($where, $pObj, 'list');
-	}
-
-
-	// -------------------------------------------------------------------------
-	/**
-	 * Method to handle the consolidated rows in list view
+	 * unused at present since rating average is written to db now
 	 *
 	 * @param   array   $params:   parent plugin configuration
 	 * @param   object  $pObj:     parent plugin object
 	 * @return void
 	 * @access  public
 	 */
-	public function showListviewRating(&$params, &$pObj) {
-		$this->conf =& $params['pObj']->conf['extensions.']['tx_orgkeq.'];
-			//  get uids of listed workshops
-		$_rowUids = array();
-		foreach ($pObj->pObj->rows as $rKey => $rVal) {
-			$_rowUids[] = $rVal['tx_org_workshop.uid'];
-		}
+##	public function showListfilterRating(&$params, &$pObj) {
+##		$this->conf =& $params['pObj']->pObj->conf['extensions.']['tx_orgkeq.'];
+##			//  get uids of listed workshops
+##		$_rowUids = array();
+##		foreach ($pObj->pObj->rows as $rKey => $rVal) {
+##			$_rowUids[] = $rVal['tx_org_workshop.uid'];
+##		}
+##
+##		$where = 'IN (' . implode(',', $_rowUids) . ')';
+##		$this->getRating($where, $pObj, 'list');
+##	}
 
-		$where = 'IN (' . implode(',', $_rowUids) . ')';
-		$this->getRating($where, $pObj, 'list');
-	}
+
+	// -------------------------------------------------------------------------
+	/**
+	 * Method to handle the consolidated rows in list view
+	 *
+	 * unused at present since rating average is written to db now
+	 *
+	 * @param   array   $params:   parent plugin configuration
+	 * @param   object  $pObj:     parent plugin object
+	 * @return void
+	 * @access  public
+	 */
+##	public function showListviewRating(&$params, &$pObj) {
+##		$this->conf =& $params['pObj']->conf['extensions.']['tx_orgkeq.'];
+##			//  get uids of listed workshops
+##		$_rowUids = array();
+##		foreach ($pObj->pObj->rows as $rKey => $rVal) {
+##			$_rowUids[] = $rVal['tx_org_workshop.uid'];
+##		}
+##
+##		$where = 'IN (' . implode(',', $_rowUids) . ')';
+##		$this->getRating($where, $pObj, 'list');
+##	}
 
 
 	// -------------------------------------------------------------------------
@@ -95,7 +99,7 @@ class tx_orgkeq_hooks_browser_pi1 {
 	 * @access  public
 	 */
 	public function showSingleviewRating(&$params, &$pObj) {
-		$this->conf =& $params['pObj']->conf['extensions.']['tx_orgkeq.'];
+		$this->conf =& $params[pObj]->pObj->conf['extensions.']['tx_orgkeq.'];
 		$where = '= ' . (int)$pObj->pObj->piVars['showUid'];
 		$this->getRating($where, $pObj, 'single');
 	}
@@ -121,6 +125,7 @@ class tx_orgkeq_hooks_browser_pi1 {
 		$limit         = '';
 
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
+		$num = $GLOBALS['TYPO3_DB']->sql_num_rows($res);
 		$dataArr = array();
 		while ($ftc = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$dataArr[$ftc['tx_orgkeq_tx_org_workshop']][] = t3lib_div::xml2Array($ftc['xmldata']);
@@ -130,7 +135,7 @@ class tx_orgkeq_hooks_browser_pi1 {
 			$_rating = $this->calculateRating($dataArr[$_rVal['tx_org_workshop.uid']], $modus);
 
 			if ($modus == 'single') {
-				$_rating['total'] = $this->getSingleRatingContent($pObj, $_rating);
+				$_rating['total'] = $this->getSingleRatingContent($pObj, $_rating, $num);
 			}
 
 			$pObj->pObj->rows[$_rKey]['tx_org_workshop.rating'] = $_rating['total'];
@@ -147,7 +152,6 @@ class tx_orgkeq_hooks_browser_pi1 {
 	 * @access  protected
 	 */
 	protected function calculateRating(&$dataArr, $modus = 'list') {
-			//  rewrite array answers
 		$_answersFactor = array();
 		foreach ($this->conf['groups.'] as $_cVal) {
 			$_answersFactor = $_answersFactor + $_cVal['answers.'];  //  do not use array_merge(), it renumbers array keys!
@@ -221,13 +225,13 @@ class tx_orgkeq_hooks_browser_pi1 {
 
 					//  cumulate values
 				$_groups[$_gVal['title']] += $_questionValue;
-					//  value per scoring factor sum
-				$_groups[$_gVal['title']] = $_groups[$_gVal['title']] / $_sumScoringFactor;
-					//  rounding: possible values are \d.0 and \d.5
-				$_groups[$_gVal['title']] = $_groups[$_gVal['title']] * 10 * 2;    //  group of ten; double
-				$_groups[$_gVal['title']] = round($_groups[$_gVal['title']], -1);  //  round up to full group of ten
-				$_groups[$_gVal['title']] = $_groups[$_gVal['title']] / 10 / 2;    //
 			}
+			//  value per scoring factor sum
+			$_groups[$_gVal['title']] = $_groups[$_gVal['title']] / $_sumScoringFactor;
+				//  rounding: possible values are \d.0 and \d.5
+			$_groups[$_gVal['title']] = $_groups[$_gVal['title']] * 10 * 2;    //  group of ten; double
+			$_groups[$_gVal['title']] = round($_groups[$_gVal['title']], -1);  //  round up to full group of ten
+			$_groups[$_gVal['title']] = $_groups[$_gVal['title']] / 10 / 2;    //
 		}
 
 
@@ -264,7 +268,7 @@ class tx_orgkeq_hooks_browser_pi1 {
 	 * @return  string  $rating:   html content
 	 * @access  protected
 	 */
-	protected function getSingleRatingContent(&$pObj, $rating) {
+	protected function getSingleRatingContent(&$pObj, $rating, $num) {
 		$ratingValues =  $rating;
 		$rating       =  '';
 		$_stdWrapConf =& $this->conf['viewSingleRating.']['stdWrap.'];
@@ -283,7 +287,7 @@ class tx_orgkeq_hooks_browser_pi1 {
 
 			//  total rating
 		$rating .= $this->getSingleRatingImages($pObj, $ratingValues['total'], $numScoring);
-		$rating .= ' (' . $ratingValues['total'] . ')';
+		$rating .= ' (' . $num . ' ' . $pObj->pObj->pi_getLL('singleRatingCount') . ')';
 
 			//  rating details
 		$_boxDetails  = '';
@@ -300,6 +304,14 @@ class tx_orgkeq_hooks_browser_pi1 {
 		}
 		$_groups      = $pObj->pObj->cObj->stdWrap($_groups, $_stdWrapConf['groups.']);
 		$_boxDetails .= $_groups;
+
+		$_rateItConf  =& $this->conf['viewSingleRating.']['rateIt.']['typolink.'];
+		$_rateIt      = $pObj->pObj->pi_getLL('singleRatingRate');
+		$_rateIt      = $pObj->pObj->cObj->typolink($_rateIt, $_rateItConf);
+		$_rateIt      = $pObj->pObj->cObj->stdWrap($_rateIt, $_stdWrapConf['rateIt.']);
+		$_boxDetails .= $_rateIt;
+
+
 			// stdwrap
 		$_boxDetails  = $pObj->pObj->cObj->stdWrap($_boxDetails, $_stdWrapConf['box.']);
 

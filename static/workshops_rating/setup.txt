@@ -23,19 +23,19 @@ plugin {
 							isLessThan = 0.999
 						}
 						file = {$plugin.org_keq.rating.image.file.full}
-						file {
-							height  = 20
-							width   = 20
-						}
-						imageLinkWrap = 1
-						imageLinkWrap {
-							enable = 1
-							typolink {
-								parameter        = {$plugin.org_keq.rating.image.typolink.parameter}
-								additionalParams = &tx_kequestionnaire_pi1[tx_org][workshop]=###TX_ORG_WORKSHOP.UID###
-								title            = Dieses Seminar bewerten
-							}
-						}
+#						file {
+#							height  = 20
+#							width   = 20
+#						}
+#						imageLinkWrap = 1
+#						imageLinkWrap {
+#							enable = 1
+#							typolink {
+#								parameter        = {$plugin.org_keq.rating.image.typolink.parameter}
+#								additionalParams = &tx_kequestionnaire_pi1[tx_org][workshop]=###TX_ORG_WORKSHOP.UID###
+#								title            = Dieses Seminar bewerten
+#							}
+#						}
 					}
 						// Less than 1
 					20 < .10
@@ -119,12 +119,12 @@ plugin {
 				}
 					//  groups: Subquestion (matrix)
 				groups {
-								//  key: as you like it
+						//  key: as you like it
 					10 {
 						title = Zufriedenheit
 						answers {
-										//  key: id tx_kequestionnaire_subquestions
-										//  value: weight in rating result
+								//  key: id tx_kequestionnaire_subquestions
+								//  value: weight in rating result
 							4 = 1
 							7 = 2
 							#...
@@ -153,14 +153,28 @@ plugin {
 							item.wrap  = <li>|</li>
 							title.wrap = <strong>|</strong>
 						}
+						rateIt.wrap = <p class="rate-it">|</p>
+					}
+					rateIt.typolink {
+						parameter        = {$plugin.org_keq.rating.image.typolink.parameter}
+						additionalParams = &tx_kequestionnaire_pi1[tx_org][workshop]=###TX_ORG_WORKSHOP.UID###
 					}
 				}
+
+        		clear_cacheCmd = {$plugin.org_keq.rating.clear_cacheCmd}
 			}
 		}
 
 		_LOCAL_LANG {
 			default {
+				singleRatingCount = ratings
+				singleRatingTitle = Seminar rating
+				singleRatingRate  = Rate this seminar!
+			}
+			de {
+				singleRatingCount = x bewertet
 				singleRatingTitle = Seminarbeurteilung
+				singleRatingRate  = Dieses Seminar bewerten!
 			}
 		}
 	}
