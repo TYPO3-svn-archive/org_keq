@@ -53,8 +53,23 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 
 	// -------------------------------------------------------------------------
 	/**
+	 * Constructor
+	 *
+	 * @return  void
+	 * @access public
+	 */
+	public function __construct() {
+		$this->conf =& $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_browser_pi1.']['extensions.']['tx_orgkeq.'];
+	}
+
+
+
+	// -------------------------------------------------------------------------
+	/**
 	 * Method to manipulate pi1_getResultsSaveArray (tx_kequestionnaire_pi1)
 	 * If you want to have a different action when no questions are found for the current questionnaire.
+	 *
+	 * uses to control the no question message text in case of user has rated yet
 	 *
 	 * @param   object   $pObj:   procObj
 	 * @return  string   $content  content to be shown on the Error that there are no active questions for the plugin
@@ -100,7 +115,6 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 	 * @access public
 	 */
 ##	public function pi1_setResultsSaveArray(&$pObj) {
-##echo '<pre><b><u>$pObj->saveArray:</u></b> ' . print_r($pObj->saveArray, 1) . '</pre>';
 ##		return $pObj->saveArray;
 ##	}
 
@@ -109,6 +123,8 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 	/**
 	 * Method to manipulate pi1_setResultsSaveFields (tx_kequestionnaire_pi1)
 	 * inserts workshop uid
+	 *
+	 * used to add the workshop uid to questionnaire answer
 	 *
 	 * @param   object   $pObj:   procObj
 	 * @param   array    $saveFields: fields to save in database
@@ -131,6 +147,8 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 	/**
 	 * Method to manipulate pi1_renderHiddenFields (tx_kequestionnaire_pi1)
 	 *
+	 * used to keep separate questionnaire form and querstionnaire score
+	 *
 	 * @param   object   $pObj:   procObj
 	 * @return  void
 	 * @access public
@@ -143,6 +161,8 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 ##			$content .= chr(10) . '<input type="hidden" name="tx_kequestionnaire_pi1[org_workshop]" value="' . (int)$pObj->piVars['org_workshop'] . '" />';
 ##		}
 ##
+##		$content .= chr(10) . '<input type="hidden" name="tx_kequestionnaire_pi1[submitted]" value="1" />';
+##
 ##		return $content;
 ##	}
 
@@ -150,6 +170,7 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 	// -------------------------------------------------------------------------
 	/**
 	 * Method to manipulate pi1_getQuestions (tx_kequestionnaire_pi1)
+	 *
 	 * used to check here the user is allowed to vote this workshop
 	 *
 	 * @param   object   $pObj:   procObj
@@ -164,7 +185,6 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 
 			//  check if access is restricted to fe users
 			//  check if there is a workshop uid given
-			//
 		if ($pObj->ffdata['access'] != 'FE_USERS' OR empty ($pObj->piVars['tx_org']['workshop'])) {
 			return;
 		}
@@ -183,6 +203,7 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
 		$ftc = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 		if ($ftc['num_results'] > 0) {
+##t3lib_div::devLog('WARNING: user has rated this workshop yet!', $this->extKey, 2);
 				//  user has rated this workshop yet!
 				//  clear question array: return something else than an empty string or an array
 			return 'Error';
@@ -215,16 +236,16 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 	 * @return  array    $markerArray
 	 * @access public
 	 */
-	public function pi1_renderLastPage(&$pObj, $result_id, &$markerArray) {
-		if (!empty ($pObj->piVars['tx_org']['workshop'])) {
-#echo '<pre><b><u>' . __LINE__ . ' $pObj->piVars[tx_org]:</u></b> ' . print_r($pObj->piVars['tx_org'], 1) . '</pre>';
-			$this->conf =& $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_browser_pi1.']['extensions.']['tx_orgkeq.'];
-			$this->getRating($pObj);
-		}
-
-			//  always return $markerArray even it's untouched!
-		return $markerArray;
-	}
+##	public function pi1_renderLastPage(&$pObj, $result_id, &$markerArray) {
+##		if (!empty ($pObj->piVars['tx_org']['workshop'])) {
+###echo '<pre><b><u>' . __LINE__ . ' $pObj->piVars[tx_org]:</u></b> ' . print_r($pObj->piVars['tx_org'], 1) . '</pre>';
+##			$this->conf =& $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_browser_pi1.']['extensions.']['tx_orgkeq.'];
+##			$this->_getRating($pObj);
+##		}
+##
+##			//  always return $markerArray even it's untouched!
+##		return $markerArray;
+##	}
 
 
 	// -------------------------------------------------------------------------
@@ -238,7 +259,7 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 	 *
 	 * @see tx_orgkeq_hooks_browser_pi1::getRating()
 	 */
-	protected function getRating(&$pObj) {
+	protected function _getRating(&$pObj) {
 		$this->workshop = (int)$pObj->piVars['tx_org']['workshop'];
 			//  get ke_questionnaire results for this uid(s)
 		$select_fields = 'xmldata, tx_orgkeq_tx_org_workshop';
@@ -249,15 +270,16 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 		$orderBy       = '';
 		$limit         = '';
 
-$sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
-#echo '<pre><b><u>' . __LINE__ . ' $sql:</u></b> ' . print_r($sql, 1) . '</pre>';
+##$sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
+##t3lib_div::devLog('SQL: get rating for this workshop', $this->extKey, 0, array('query' => $sql));
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
 		$dataArr = array();
 		while ($ftc = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$dataArr[$ftc['tx_orgkeq_tx_org_workshop']][] = t3lib_div::xml2Array($ftc['xmldata']);
 		}
+##t3lib_div::devLog('DEBUG: data array', $this->extKey, -1, array('$dataArr' => $dataArr));
 
-		$_rating = $this->calculateRating($dataArr[$this->workshop]);
+		$_rating = $this->_calculateRating($dataArr[$this->workshop]);
 	}
 
 
@@ -270,13 +292,14 @@ $sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_cla
 	 *
 	 * @see tx_orgkeq_hooks_browser_pi1::calculateRating()
 	 */
-	protected function calculateRating(&$dataArr) {
-#echo '<pre><b><u>' . __LINE__ . ' $dataArr:</u></b> ' . print_r($dataArr, 1) . '</pre>';
+	protected function _calculateRating(&$dataArr) {
+##t3lib_div::devLog('DEBUG: data array', $this->extKey, -1, array('$dataArr' => $dataArr));
 			//  rewrite array answers
 		$_answersFactor = array();
 		foreach ($this->conf['groups.'] as $_cVal) {
 			$_answersFactor = $_answersFactor + $_cVal['answers.'];  //  do not use array_merge(), it renumbers array keys!
 		}
+##t3lib_div::devLog('DEBUG: rewrite array answers', $this->extKey, -1, array('$_answersFactor' => $_answersFactor));
 
 
 		/**
@@ -294,6 +317,7 @@ $sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_cla
 				}
 			}
 		}
+##t3lib_div::devLog('DEBUG: consolidate given ratings', $this->extKey, -1, array('$_dataConsolidated' => $_dataConsolidated));
 
 			//  count given ratings
 		$_numRatings = count($_dataConsolidated);
@@ -311,8 +335,10 @@ $sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_cla
 				}
 					//  cumulate values
 				$_questions[$_ddKey] += $this->conf['scoring.'][$_ddVal['single']];
+##t3lib_div::devLog('DEBUG: assign questions with accumulated values', $this->extKey, -1, array('$_ddVal' => $_ddVal, '$_questions[$_ddKey]' => $_questions[$_ddKey]));
 			}
 		}
+##t3lib_div::devLog('DEBUG: assign questions with accumulated values', $this->extKey, -1, array('$_questions' => $_questions));
 
 		/**
 		 * get average and scoring, do rounding
@@ -321,6 +347,7 @@ $sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_cla
 				//  average
 			$_questions[$_qKey] = $_qVal / $_numRatings;
 		}
+##t3lib_div::devLog('DEBUG: get average and scoring, do rounding', $this->extKey, -1, array('$_questions' => $_questions));
 
 
 		/**
@@ -354,6 +381,7 @@ $sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_cla
 			$_groups[$_gVal['title']] = round($_groups[$_gVal['title']], -1);  //  round up to full group of ten
 			$_groups[$_gVal['title']] = $_groups[$_gVal['title']] / 10 / 2;    //
 		}
+##t3lib_div::devLog('DEBUG: group answer values', $this->extKey, -1, array('$_groups' => $_groups));
 
 
 		/**
@@ -370,12 +398,14 @@ $sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_cla
 		$_total = $_total * 10 * 2;    //  group of ten; double
 		$_total = round($_total, -1);  //  round up to full group of ten
 		$_total = $_total / 10 / 2;    //
+##t3lib_div::devLog('DEBUG: total', $this->extKey, -1, array('$_total' => $_total));
 
 
 		$rating = array(
 		    'total'  => $_total,
 		    'groups' => ($modus == 'list' ? NULL : $_groups),
 		);
+##t3lib_div::devLog('DEBUG: total', $this->extKey, -1, array('$rating' => $rating));
 
 
 			//  update rating for this workshop
@@ -385,22 +415,37 @@ $sql = $GLOBALS['TYPO3_DB']->SELECTquery($select_fields, $from_table, $where_cla
 			'rating' => (int)$rating['total'],
 		);
 		$no_quote_fields = FALSE;
-$sql = $GLOBALS['TYPO3_DB']->UPDATEquery($table, $where, $fields_values, $no_quote_fields);
-#echo '<pre><b><u>' . __LINE__ . ' $sql:</u></b> ' . print_r($sql, 1) . '</pre>';
+##$sql = $GLOBALS['TYPO3_DB']->UPDATEquery($table, $where, $fields_values, $no_quote_fields);
+##t3lib_div::devLog('SQL: update rating for this workshop', $this->extKey, 0, array('query' => $sql));
 		$GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, $where, $fields_values, $no_quote_fields);
 
 			// Clear cache
 		$clearCache   = t3lib_div::trimExplode(',', $this->conf['clear_cacheCmd'], TRUE);
-	##	$clearCache[] = $GLOBALS['TSFE']->id;
 		$tce = t3lib_div::makeInstance('t3lib_TCEmain');
 		/* @var $tce t3lib_TCEmain */
 		foreach (array_unique($clearCache) as $pid) {
 			$pid = (int)$pid;
-#echo '<pre><b><u>' . __LINE__ . ' $tce->clear_cacheCmd(' . $pid . '):</u></b></pre>';
 			$tce->clear_cacheCmd($pid);
 		}
 	}
+
+
+	// -------------------------------------------------------------------------
+	/**
+	 *
+	 * It seems to be the last called hook in runtime
+	 * inserts workshop uid
+	 *
+	 * @param   object   $pObj:   procObj
+	 * @return  void
+	 * @access public
+	 */
+	public function postProcess(&$pObj) {
+##t3lib_div::devLog('DEBUG: postProcess()', $this->extKey, -1);
+		$this->_getRating($pObj);
+	}
 }
+
 
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/org_keq/class.tx_orgkeq_hooks.php']) {
