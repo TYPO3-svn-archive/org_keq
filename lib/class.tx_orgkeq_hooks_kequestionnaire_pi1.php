@@ -448,7 +448,7 @@ class tx_orgkeq_hooks_kequestionnaire_pi1 {
 
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/org_keq/class.tx_orgkeq_hooks.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/org_keq/class.tx_orgkeq_hooks.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/org_keq/lib/class.tx_orgkeq_hooks_kequestionnaire_pi1.php']) {
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/org_keq/lib/class.tx_orgkeq_hooks_kequestionnaire_pi1.php']);
 }
 ?>
